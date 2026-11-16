@@ -58,29 +58,21 @@ Download:
 - Streamlit
 - CSV Data Processing
 ## Project Structure
+```
 InboxPilotAI/
 
   ├── agents.py
-
   ├── cleaner.py
-  
   ├── data_loader.py
-  
   ├── main.py
-
   ├── dashboard.py
-
   ├── raw_emails.csv
-
   ├── clean_emails.csv
-
   ├── results.csv
-
   ├── high_priority.csv
-
   ├── requirements.txt
-
   └── .gitignore
+```
 
 ## How It Works
 
