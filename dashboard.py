@@ -8,7 +8,11 @@ from agents import (
 )
 import io
 
-
+st.set_page_config(
+    page_title="InboxPilot AI",
+    page_icon="📧",
+    layout="wide"
+)
 
 results_df = pd.read_csv("results.csv")
 processed_emails = len(results_df)
@@ -59,7 +63,7 @@ with col4:
 with col5:
     st.metric("Personal", 21)
 
-#st.subheader("📤 Upload Email Dataset")
+
 
 st.sidebar.title("📤 Upload Email Dataset")
 
@@ -68,13 +72,16 @@ st.sidebar.write(
 )
 
 uploaded_file = st.sidebar.file_uploader(
-    "Upload a CSV file",
+    "Upload an email dataset (CSV)",
     type=["csv"]
 )
 st.sidebar.markdown("---")
 
 st.sidebar.subheader("Project Features")
 
+st.sidebar.write(
+    "InboxPilot automatically classifies emails, assigns priorities, suggests folders and generates response drafts."
+)
 st.sidebar.write("✅ Email Classification")
 st.sidebar.write("✅ Priority Assignment")
 st.sidebar.write("✅ Folder Suggestions")
@@ -117,12 +124,14 @@ if uploaded_file is not None:
         analyzed_df = pd.DataFrame(
             analyzed_results
         )
+        st.success(f"Successfully analyzed {len(analyzed_df)} emails.")
+
         csv_file = analyzed_df.to_csv(
             index=False
             )
 
         st.download_button(
-            label="⬇️ Download Results CSV",
+            label="⬇️ Download Full Analysis",
             data=csv_file,
             file_name="inboxpilot_results.csv",
             mime="text/csv"
@@ -179,3 +188,9 @@ else:
     ]
 
 st.dataframe(filtered_df)
+
+st.markdown("---")
+
+st.caption(
+    "InboxPilot AI | Built with Python, Pandas and Streamlit"
+)
