@@ -1,5 +1,10 @@
 from openai import OpenAI
-from config import REQUESTY_API_KEY
+import streamlit as st
+
+try:
+    from config import REQUESTY_API_KEY
+except ImportError:
+    REQUESTY_API_KEY = st.secrets["REQUESTY_API_KEY"]
 
 interview_keywords = [
     "interview",
