@@ -1,3 +1,6 @@
+from openai import OpenAI
+from config import REQUESTY_API_KEY
+
 interview_keywords = [
     "interview",
     "availability",
@@ -60,8 +63,73 @@ def classify_email(email):
 
     return "personal emails"
 
+def ai_classify_email(email_text):
 
+    client = OpenAI(
+        api_key=REQUESTY_API_KEY,
+        base_url="https://router.requesty.ai/v1"
+    )
 
+    response = client.chat.completions.create(
+        model="novita/ling-3.1-flash",
+        messages=[
+            {
+                "role": "user",
+                "content": f"""
+Classify this email into exactly one category:
+
+- interview invitation
+- university news
+- job application confirmations
+- newsletter and discounts
+- personal emails
+
+Return ONLY the category name.
+
+Email:
+
+{email_text}
+"""
+            }
+        ]
+    )
+
+    return response.choices[0].message.content.strip()
+
+def ai_generate_reply(email_text):
+
+    client = OpenAI(
+        api_key=REQUESTY_API_KEY,
+        base_url="https://router.requesty.ai/v1"
+    )
+
+    response = client.chat.completions.create(
+        model="novita/ling-3.1-flash",
+        messages=[
+            {
+                "role": "user",
+                "content": f"""
+Write a professional email reply.
+
+Requirements:
+- Professional tone
+- Accept the interview invitation
+- Be concise
+- Include greeting
+- Include closing
+- Sign with:
+
+Ana García Mochales Ortiz
+
+Email:
+
+{email_text}
+"""
+            }
+        ]
+    )
+
+    return response.choices[0].message.content.strip()
 
     
 def assign_priority(category):
