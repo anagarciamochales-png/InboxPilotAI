@@ -11,6 +11,22 @@ from agents import (
     suggest_folder,
     ai_generate_reply
 )
+from pathlib import Path
+import json
+from config import REQUESTY_API_KEY, ADMIN_CODE
+
+
+USAGE_FILE = Path("request_counter.json")
+
+used = 0
+
+if USAGE_FILE.exists():
+    with open(USAGE_FILE, "r") as f:
+        data = json.load(f)
+
+    used = data["count"]
+
+st.sidebar.info(f"AI requests used today: {used}/100")
 
 # ============================
 # Page Configuration
@@ -39,6 +55,15 @@ st.sidebar.title("📤 Upload Email Dataset")
 st.sidebar.write(
     "Rule-based multi-agent email assistant"
 )
+with st.sidebar.expander("⚙️ Settings"):
+    demo_code = st.text_input(
+        "Admin Code",
+        type="password"
+    )
+
+is_admin = demo_code == ADMIN_CODE
+if is_admin:
+    st.sidebar.success("✅ Admin Mode Active")
 
 # ============================
 # File Upload
@@ -101,8 +126,11 @@ if st.button("🚀 Analyze Emails"):
             if analysis_mode == "Rule-Based":
                 category = classify_email(email_text)
             else:
-                category = ai_classify_email(email_text)
+                category = ai_classify_email(email_text,is_admin=is_admin)
             
+            if category == "AI_LIMIT_REACHED":
+                st.error("Daily AI demo limit reached. Please use Rule-Based mode.")
+                st.stop()
 
 # ============================
 # AI Reply Assistant
@@ -113,7 +141,7 @@ if st.button("🚀 Analyze Emails"):
                 analysis_mode == "AI-Powered"
                 and category == "interview invitation"
                 ):
-                ai_reply = ai_generate_reply(email_text)
+                ai_reply = ai_generate_reply(email_text,is_admin=is_admin)
 
             priority = assign_priority(category)
 

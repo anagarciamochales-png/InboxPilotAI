@@ -1,10 +1,60 @@
 from openai import OpenAI
 import streamlit as st
+import json
+from datetime import date
+from pathlib import Path
+
 
 try:
     from config import REQUESTY_API_KEY
 except ImportError:
     REQUESTY_API_KEY = st.secrets["REQUESTY_API_KEY"]
+
+MAX_DAILY_REQUESTS = 100
+
+COUNTER_FILE = Path("request_counter.json")
+
+
+def can_make_ai_request(is_admin=False):
+    # Admin bypass
+    if is_admin:
+        return True
+    
+    today = str(date.today())
+
+    if not COUNTER_FILE.exists():
+        data = {"date": today, "count": 0}
+        with open(COUNTER_FILE, "w") as f:
+            json.dump(data, f)
+
+    with open(COUNTER_FILE, "r") as f:
+        data = json.load(f)
+
+    # Reset every day
+    if data["date"] != today:
+        data = {"date": today, "count": 0}
+
+        with open(COUNTER_FILE, "w") as f:
+            json.dump(data, f)
+
+    return data["count"] < MAX_DAILY_REQUESTS
+
+def register_ai_request():
+    today = str(date.today())
+
+    if COUNTER_FILE.exists():
+        with open(COUNTER_FILE, "r") as f:
+            data = json.load(f)
+    else:
+        data = {"date": today, "count": 0}
+
+    if data["date"] != today:
+        data = {"date": today, "count": 0}
+
+    data["count"] += 1
+
+    with open(COUNTER_FILE, "w") as f:
+        json.dump(data, f)
 
 interview_keywords = [
     "interview",
@@ -68,7 +118,10 @@ def classify_email(email):
 
     return "personal emails"
 
-def ai_classify_email(email_text):
+def ai_classify_email(email_text, is_admin=False):
+    # Check daily limit BEFORE calling the AI
+    if not can_make_ai_request(is_admin):
+        return "AI_LIMIT_REACHED"
 
     client = OpenAI(
         api_key=REQUESTY_API_KEY,
@@ -98,11 +151,16 @@ Email:
             }
         ]
     )
+    # Register usage only after a successful request
+    if not is_admin:
+        register_ai_request()
 
     return response.choices[0].message.content.strip()
 
-def ai_generate_reply(email_text):
-
+def ai_generate_reply(email_text, is_admin=False):
+    if not can_make_ai_request(is_admin):
+        return "AI_LIMIT_REACHED"
+    
     client = OpenAI(
         api_key=REQUESTY_API_KEY,
         base_url="https://router.requesty.ai/v1"
@@ -133,6 +191,8 @@ Email:
             }
         ]
     )
+    if not is_admin:
+        register_ai_request()
 
     return response.choices[0].message.content.strip()
 
