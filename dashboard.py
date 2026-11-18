@@ -13,8 +13,13 @@ from agents import (
 )
 from pathlib import Path
 import json
-from config import REQUESTY_API_KEY, ADMIN_CODE
+import streamlit as st
 
+try:
+    from config import REQUESTY_API_KEY, ADMIN_CODE
+except ImportError:
+    REQUESTY_API_KEY = st.secrets["REQUESTY_API_KEY"]
+    ADMIN_CODE = st.secrets["ADMIN_CODE"]
 
 USAGE_FILE = Path("request_counter.json")
 
